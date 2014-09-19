@@ -1,0 +1,444 @@
+1.
+
+mysql> select CUSTOMER_NAME, CREDIT_LIMIT FROM CUSTOMER;
++----------------------------+--------------+
+| CUSTOMER_NAME              | CREDIT_LIMIT |
++----------------------------+--------------+
+| Al's Appliance and Sport   |      7500.00 |
+| Brookings Direct           |     10000.00 |
+| Ferguson's                 |      7500.00 |
+| The Everything Shop        |      5000.00 |
+| Bargains Galore            |     10000.00 |
+| Kline's                    |     15000.00 |
+| Johnson's Department Store |     10000.00 |
+| Lee's Sport and Appliance  |      5000.00 |
+| Deerfield's Four Seasons   |      7500.00 |
+| All Season                 |      7500.00 |
++----------------------------+--------------+
+10 rows in set (0.00 sec)
+
+2.
+
+mysql> SELECT ORDER_DATE, CUSTOMER.CUSTOMER_NUM, CUSTOMER_NAME
+    -> FROM ORDERS, CUSTOMER
+    -> WHERE CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM
+    -> ORDER BY CUSTOMER.CUSTOMER_NUM
+    -> ;
++------------+--------------+----------------------------+
+| ORDER_DATE | CUSTOMER_NUM | CUSTOMER_NAME              |
++------------+--------------+----------------------------+
+| 2007-10-23 | 148          | Al's Appliance and Sport   |
+| 2007-10-20 | 148          | Al's Appliance and Sport   |
+| 2007-10-21 | 282          | Brookings Direct           |
+| 2007-10-20 | 356          | Ferguson's                 |
+| 2007-10-21 | 408          | The Everything Shop        |
+| 2007-10-23 | 608          | Johnson's Department Store |
+| 2007-10-23 | 608          | Johnson's Department Store |
++------------+--------------+----------------------------+
+7 rows in set (0.00 sec)
+
+3.
+
+mysql> SELECT PART_NUM, DESCRIPTION, PRICE
+    -> FROM PART
+    -> ;
++----------+----------------+---------+
+| PART_NUM | DESCRIPTION    | PRICE   |
++----------+----------------+---------+
+| AT94     | Iron           |   24.95 |
+| BV06     | Home Gym       |  794.95 |
+| CD52     | Microwave Oven |  165.00 |
+| DL71     | Cordless Drill |  129.95 |
+| DR93     | Gas Range      |  495.00 |
+| DW11     | Washer         |  399.99 |
+| FD21     | Stand Mixer    |  159.95 |
+| KL62     | Dryer          |  349.95 |
+| KT03     | Dishwasher     |  595.00 |
+| KV29     | Treadmill      | 1390.00 |
++----------+----------------+---------+
+10 rows in set (0.00 sec)
+
+4.
+mysql> select ORDER_NUM
+    -> FROM ORDERS
+    -> WHERE CUSTOMER_NUM=148
+    -> AND ORDER_DATE=20071020
+    -> ;
++-----------+
+| ORDER_NUM |
++-----------+
+| 21608     |
++-----------+
+1 row in set (0.00 sec)
+
+5.
+mysql> SELECT CUSTOMER_NUM, CUSTOMER_NAME
+    -> FROM CUSTOMER
+    -> WHERE REP_NUM=35
+    -> OR REP_NUM=65
+    -> ;
++--------------+----------------------------+
+| CUSTOMER_NUM | CUSTOMER_NAME              |
++--------------+----------------------------+
+| 282          | Brookings Direct           |
+| 356          | Ferguson's                 |
+| 408          | The Everything Shop        |
+| 462          | Bargains Galore            |
+| 608          | Johnson's Department Store |
+| 687          | Lee's Sport and Appliance  |
+| 725          | Deerfield's Four Seasons   |
++--------------+----------------------------+
+7 rows in set (0.00 sec)
+
+6.
+mysql> SELECT PART_NUM, DESCRIPTION, ON_HAND, ON_HAND*PRICE AS ON_HAND_VALUE
+    -> FROM PART
+    -> WHERE (ON_HAND*PRICE)>=7500
+    -> ;
++----------+-------------+---------+---------------+
+| PART_NUM | DESCRIPTION | ON_HAND | ON_HAND_VALUE |
++----------+-------------+---------+---------------+
+| BV06     | Home Gym    |      45 |      35772.75 |
+| KV29     | Treadmill   |       9 |      12510.00 |
++----------+-------------+---------+---------------+
+2 rows in set (0.00 sec)
+
+7.
+mysql> SELECT PART_NUM, DESCRIPTION
+    -> FROM PART
+    -> WHERE CLASS IN ('AP', 'SG')
+    -> ;
++----------+----------------+
+| PART_NUM | DESCRIPTION    |
++----------+----------------+
+| BV06     | Home Gym       |
+| CD52     | Microwave Oven |
+| DR93     | Gas Range      |
+| DW11     | Washer         |
+| KL62     | Dryer          |
+| KT03     | Dishwasher     |
+| KV29     | Treadmill      |
++----------+----------------+
+7 rows in set (0.00 sec)
+
+8.
+mysql> SELECT CUSTOMER_NUM, CUSTOMER_NAME
+    -> FROM CUSTOMER
+    -> WHERE CUSTOMER_NAME LIKE 'K%'
+    -> ;
++--------------+---------------+
+| CUSTOMER_NUM | CUSTOMER_NAME |
++--------------+---------------+
+| 524          | Kline's       |
++--------------+---------------+
+1 row in set (0.00 sec)
+
+9.
+mysql> SELECT ORDER_NUM, ORDER_DATE, ORDERS.CUSTOMER_NUM, CUSTOMER.CUSTOMER_NAME
+    -> FROM ORDERS
+    -> JOIN CUSTOMER
+    -> ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM
+    -> ;
++-----------+------------+--------------+----------------------------+
+| ORDER_NUM | ORDER_DATE | CUSTOMER_NUM | CUSTOMER_NAME              |
++-----------+------------+--------------+----------------------------+
+| 21608     | 2007-10-20 | 148          | Al's Appliance and Sport   |
+| 21610     | 2007-10-20 | 356          | Ferguson's                 |
+| 21613     | 2007-10-21 | 408          | The Everything Shop        |
+| 21614     | 2007-10-21 | 282          | Brookings Direct           |
+| 21617     | 2007-10-23 | 608          | Johnson's Department Store |
+| 21619     | 2007-10-23 | 148          | Al's Appliance and Sport   |
+| 21623     | 2007-10-23 | 608          | Johnson's Department Store |
++-----------+------------+--------------+----------------------------+
+7 rows in set (0.00 sec)
+
+
+
+
+10.
+mysql> SELECT ORDERS.ORDER_NUM, ORDER_DATE, ORDER_LINE.PART_NUM, ORDER_LINE.NUM_ORDERED, ORDER_LINE.QUOTED_PRICE
+    -> FROM ORDERS
+    -> JOIN ORDER_LINE
+    -> ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM
+    -> ;
++-----------+------------+----------+-------------+--------------+
+| ORDER_NUM | ORDER_DATE | PART_NUM | NUM_ORDERED | QUOTED_PRICE |
++-----------+------------+----------+-------------+--------------+
+| 21608     | 2007-10-20 | AT94     |          11 |        21.95 |
+| 21610     | 2007-10-20 | DR93     |           1 |       495.00 |
+| 21610     | 2007-10-20 | DW11     |           1 |       399.99 |
+| 21613     | 2007-10-21 | KL62     |           4 |       329.95 |
+| 21614     | 2007-10-21 | KT03     |           2 |       595.00 |
+| 21617     | 2007-10-23 | BV06     |           2 |       794.95 |
+| 21617     | 2007-10-23 | CD52     |           4 |       150.00 |
+| 21619     | 2007-10-23 | DR93     |           1 |       495.00 |
+| 21623     | 2007-10-23 | KV29     |           2 |      1290.00 |
++-----------+------------+----------+-------------+--------------+
+9 rows in set (0.00 sec)
+
+11.
+mysql> SELECT ORDERS.ORDER_NUM, ORDER_DATE, PART.PART_NUM, DESCRIPTION, CLASS 
+FROM ORDERS 
+JOIN ORDER_LINE 
+ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM 
+JOIN PART 
+ON ORDER_LINE.PART_NUM=PART.PART_NUM;
++-----------+------------+----------+----------------+-------+
+| ORDER_NUM | ORDER_DATE | PART_NUM | DESCRIPTION    | CLASS |
++-----------+------------+----------+----------------+-------+
+| 21608     | 2007-10-20 | AT94     | Iron           | HW    |
+| 21610     | 2007-10-20 | DR93     | Gas Range      | AP    |
+| 21610     | 2007-10-20 | DW11     | Washer         | AP    |
+| 21613     | 2007-10-21 | KL62     | Dryer          | AP    |
+| 21614     | 2007-10-21 | KT03     | Dishwasher     | AP    |
+| 21617     | 2007-10-23 | BV06     | Home Gym       | SG    |
+| 21617     | 2007-10-23 | CD52     | Microwave Oven | AP    |
+| 21619     | 2007-10-23 | DR93     | Gas Range      | AP    |
+| 21623     | 2007-10-23 | KV29     | Treadmill      | SG    |
++-----------+------------+----------+----------------+-------+
+9 rows in set (0.00 sec)
+
+
+
+12.
+mysql> SELECT *
+    -> FROM PART
+    -> ORDER BY CLASS, PART_NUM;
++----------+----------------+---------+-------+-----------+---------+
+| PART_NUM | DESCRIPTION    | ON_HAND | CLASS | WAREHOUSE | PRICE   |
++----------+----------------+---------+-------+-----------+---------+
+| CD52     | Microwave Oven |      32 | AP    | 1         |  165.00 |
+| DR93     | Gas Range      |       8 | AP    | 2         |  495.00 |
+| DW11     | Washer         |      12 | AP    | 3         |  399.99 |
+| KL62     | Dryer          |      12 | AP    | 1         |  349.95 |
+| KT03     | Dishwasher     |       8 | AP    | 3         |  595.00 |
+| AT94     | Iron           |      50 | HW    | 3         |   24.95 |
+| DL71     | Cordless Drill |      21 | HW    | 3         |  129.95 |
+| FD21     | Stand Mixer    |      22 | HW    | 3         |  159.95 |
+| BV06     | Home Gym       |      45 | SG    | 2         |  794.95 |
+| KV29     | Treadmill      |       9 | SG    | 2         | 1390.00 |
++----------+----------------+---------+-------+-----------+---------+
+10 rows in set (0.00 sec)
+
+13.
+mysql> SELECT SUM(BALANCE)
+    -> FROM CUSTOMER
+    -> WHERE REP_NUM=65
+    -> AND BALANCE<CREDIT_LIMIT
+    -> ;
++--------------+
+| SUM(BALANCE) |
++--------------+
+|     11303.00 |
++--------------+
+1 row in set (0.00 sec)
+
+14.
+mysql> SELECT PRICE, PART_NUM, DESCRIPTION
+    -> FROM PART
+    -> WHERE PRICE=(SELECT MAX(PRICE) FROM PART)
+    -> ;
++---------+----------+-------------+
+| PRICE   | PART_NUM | DESCRIPTION |
++---------+----------+-------------+
+| 1390.00 | KV29     | Treadmill   |
++---------+----------+-------------+
+1 row in set (0.00 sec)
+
+
+15.
+mysql> SELECT SUM(BALANCE)
+    -> FROM CUSTOMER
+    -> GROUP BY REP_NUM;
++--------------+
+| SUM(BALANCE) |
++--------------+
+|     27533.00 |
+|      8815.75 |
+|     11303.00 |
++--------------+
+3 rows in set (0.00 sec)
+
+
+mysql> SELECT REP_NUM, SUM(BALANCE)
+    -> FROM CUSTOMER
+    -> GROUP BY REP_NUM;
++---------+--------------+
+| REP_NUM | SUM(BALANCE) |
++---------+--------------+
+| 20      |     27533.00 |
+| 35      |      8815.75 |
+| 65      |     11303.00 |
++---------+--------------+
+3 rows in set (0.00 sec)
+
+16.
+mysql> SELECT COUNT(BALANCE)
+    -> FROM CUSTOMER
+    -> WHERE BALANCE>CREDIT_LIMIT
+    -> ;
++----------------+
+| COUNT(BALANCE) |
++----------------+
+|              2 |
++----------------+
+1 row in set (0.00 sec)
+
+17.
+mysql> SELECT PART_NUM, DESCRIPTION, ON_HAND 
+FROM PART 
+WHERE ON_HAND>(SELECT AVG(ON_HAND) FROM PART);
++----------+----------------+---------+
+| PART_NUM | DESCRIPTION    | ON_HAND |
++----------+----------------+---------+
+| AT94     | Iron           |      50 |
+| BV06     | Home Gym       |      45 |
+| CD52     | Microwave Oven |      32 |
+| FD21     | Stand Mixer    |      22 |
++----------+----------------+---------+
+4 rows in set (0.00 sec)
+
+18.
+mysql> SELECT DISTINCT REP.REP_NUM, LAST_NAME, FIRST_NAME 
+FROM REP 
+JOIN CUSTOMER 
+ON REP.REP_NUM=CUSTOMER.REP_NUM  
+WHERE CUSTOMER.CREDIT_LIMIT=5000;
++---------+-----------+------------+
+| REP_NUM | LAST_NAME | FIRST_NAME |
++---------+-----------+------------+
+| 35      | Hull      | Richard    |
++---------+-----------+------------+
+1 row in set (0.00 sec)
+
+19.
+mysql> SELECT CUSTOMER_NAME, CUSTOMER.CUSTOMER_NUM 
+FROM CUSTOMER 
+JOIN ORDERS 
+ON CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM 
+JOIN ORDER_LINE 
+ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM 
+JOIN PART 
+ON ORDER_LINE.PART_NUM=PART.PART_NUM
+    -> WHERE DESCRIPTION='GAS RANGE';
++--------------------------+--------------+
+| CUSTOMER_NAME            | CUSTOMER_NUM |
++--------------------------+--------------+
+| Ferguson's               | 356          |
+| Al's Appliance and Sport | 148          |
++--------------------------+--------------+
+2 rows in set (0.00 sec)
+
+
+
+
+
+20.
+mysql> SELECT PART_NUM, DESCRIPTION, CLASS
+    -> FROM PART
+    -> ORDER BY CLASS;
++----------+----------------+-------+
+| PART_NUM | DESCRIPTION    | CLASS |
++----------+----------------+-------+
+| DW11     | Washer         | AP    |
+| KT03     | Dishwasher     | AP    |
+| CD52     | Microwave Oven | AP    |
+| KL62     | Dryer          | AP    |
+| DR93     | Gas Range      | AP    |
+| FD21     | Stand Mixer    | HW    |
+| AT94     | Iron           | HW    |
+| DL71     | Cordless Drill | HW    |
+| BV06     | Home Gym       | SG    |
+| KV29     | Treadmill      | SG    |
++----------+----------------+-------+
+10 rows in set (0.00 sec)
+
+mysql> SELECT PART_NUM, DESCRIPTION, CLASS 
+FROM PART 
+GROUP BY CLASS;
++----------+----------------+-------+
+| PART_NUM | DESCRIPTION    | CLASS |
++----------+----------------+-------+
+| CD52     | Microwave Oven | AP    |
+| AT94     | Iron           | HW    |
+| BV06     | Home Gym       | SG    |
++----------+----------------+-------+
+3 rows in set (0.00 sec)
+
+
+21.
+mysql> SELECT ORDERS.ORDER_NUM, ORDER_DATE
+    -> FROM ORDERS
+    -> JOIN ORDER_LINE
+    -> ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM
+    -> JOIN PART
+    -> ON ORDER_LINE.PART_NUM=PART.PART_NUM
+    -> WHERE DESCRIPTION='IRON'
+    -> ;
++-----------+------------+
+| ORDER_NUM | ORDER_DATE |
++-----------+------------+
+| 21608     | 2007-10-20 |
++-----------+------------+
+1 row in set (0.00 sec)
+
+
+
+
+22.
+
+mysql> SELECT PART_NUM, DESCRIPTION 
+FROM PART 
+WHERE CLASS IN ('HW', 'AP');
++----------+----------------+
+| PART_NUM | DESCRIPTION    |
++----------+----------------+
+| AT94     | Iron           |
+| CD52     | Microwave Oven |
+| DL71     | Cordless Drill |
+| DR93     | Gas Range      |
+| DW11     | Washer         |
+| FD21     | Stand Mixer    |
+| KL62     | Dryer          |
+| KT03     | Dishwasher     |
++----------+----------------+
+8 rows in set (0.00 sec)
+
+
+23.
+mysql> SELECT ORDER_NUM, ORDER_DATE 
+FROM ORDERS 
+JOIN CUSTOMER 
+ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM 
+WHERE CUSTOMER_NAME="JOHNSON'S DEPARTMENT STORE";
++-----------+------------+
+| ORDER_NUM | ORDER_DATE |
++-----------+------------+
+| 21617     | 2007-10-23 |
+| 21623     | 2007-10-23 |
++-----------+------------+
+2 rows in set (0.00 sec)
+
+
+
+24.
+mysql> SELECT ORDERS.ORDER_NUM, ORDER_DATE
+    -> FROM ORDERS
+    -> JOIN CUSTOMER
+    -> ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM
+    -> JOIN ORDER_LINE
+    -> ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM
+    -> JOIN PART
+    -> ON ORDER_LINE.PART_NUM=PART.PART_NUM
+    -> WHERE CUSTOMER_NAME="JOHNSON'S DEPARTMENT STORE"
+    -> AND DESCRIPTION<>'GAS RANGE'
+    -> ;
++-----------+------------+
+| ORDER_NUM | ORDER_DATE |
++-----------+------------+
+| 21617     | 2007-10-23 |
+| 21617     | 2007-10-23 |
+| 21623     | 2007-10-23 |
++-----------+------------+
+3 rows in set (0.00 sec)
+

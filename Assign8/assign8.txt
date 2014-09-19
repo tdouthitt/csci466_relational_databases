@@ -1,0 +1,462 @@
+1.
+
+
+mysql> EXPLAIN SELECT ORDER_DATE, CUSTOMER.CUSTOMER_NUM, CUSTOMER_NAME
+    -> FROM ORDERS, CUSTOMER
+    -> WHERE CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM
+    -> ORDER BY CUSTOMER.CUSTOMER_NUM
+    -> ;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra                           |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 | Using temporary; Using filesort |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |                                 |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE INDEX NAME_IDX
+    -> ON CUSTOMER (CUSTOMER_NAME);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+
+mysql> EXPLAIN SELECT ORDER_DATE, CUSTOMER.CUSTOMER_NUM, CUSTOMER_NAME FROM ORDERS, CUSTOMER WHERE CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM ORDER BY CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra                           |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 | Using temporary; Using filesort |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |                                 |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+2 rows in set (0.00 sec)
+
+I tried to index the customer name as that would be a common search criteria
+to bring up a list of orders by that customer.
+
+
+mysql> CREATE INDEX DATE_IDX
+    -> ON ORDERS (ORDER_DATE);
+Query OK, 7 rows affected (0.02 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_DATE, CUSTOMER.CUSTOMER_NUM, CUSTOMER_NAME FROM ORDERS, CUSTOMER WHERE CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM ORDER BY CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra                           |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 | Using temporary; Using filesort |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |                                 |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+2 rows in set (0.00 sec)
+
+I tried to index the date as that would be another common search criteria, a customer knows
+they purchased something a few days ago and wants to see what it was for example.
+
+mysql> CREATE INDEX ORDER_IDX
+    -> ON ORDERS (ORDER_NUM);
+Query OK, 7 rows affected (0.02 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_DATE, CUSTOMER.CUSTOMER_NUM, CUSTOMER_NAME FROM ORDERS, CUSTOMER WHERE CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM ORDER BY CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra                           |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 | Using temporary; Using filesort |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |                                 |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+---------------------------------+
+2 rows in set (0.00 sec)
+
+I tried to index the order number as it could be used to look up the order and customer
+if read off a receipt.
+
+
+
+2.
+
+mysql> EXPLAIN SELECT ORDER_NUM FROM ORDERS WHERE CUSTOMER_NUM=148 AND ORDER_DATE=20071020;
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+| id | select_type | table  | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+|  1 | SIMPLE      | ORDERS | ALL  | NULL          | NULL | NULL    | NULL |    7 | Using where |
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+mysql> CREATE INDEX CUST_IDX
+    -> ON CUSTOMER (CUSTOMER_NUM);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_NUM FROM ORDERS WHERE CUSTOMER_NUM=148 AND ORDER_DATE=20071020;
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+| id | select_type | table  | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+|  1 | SIMPLE      | ORDERS | ALL  | NULL          | NULL | NULL    | NULL |    7 | Using where |
++----+-------------+--------+------+---------------+------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+I tried to index the customer number as it is a common search criteria.
+
+mysql> CREATE INDEX DATE_IDX
+    -> ON ORDERS (ORDER_DATE);
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_NUM FROM ORDERS WHERE CUSTOMER_NUM=148 AND ORDER_DATE=20071020;
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+| id | select_type | table  | type | possible_keys | key      | key_len | ref   | rows | Extra       |
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+|  1 | SIMPLE      | ORDERS | ref  | DATE_IDX      | DATE_IDX | 4       | const |    2 | Using where |
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+1 row in set (0.00 sec)
+
+
+
+mysql> CREATE INDEX ORDER_IDX
+    -> ON ORDERS (ORDER_NUM);
+Query OK, 7 rows affected (0.02 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+I tried to index order date and improved the table by providing it with a usable key.
+
+mysql> EXPLAIN SELECT ORDER_NUM FROM ORDERS WHERE CUSTOMER_NUM=148 AND ORDER_DATE=20071020;
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+| id | select_type | table  | type | possible_keys | key      | key_len | ref   | rows | Extra       |
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+|  1 | SIMPLE      | ORDERS | ref  | DATE_IDX      | DATE_IDX | 4       | const |    2 | Using where |
++----+-------------+--------+------+---------------+----------+---------+-------+------+-------------+
+1 row in set (0.00 sec)
+
+I tried to index order number because it would be something each customer
+would have on a receipt.
+
+3.
+
+mysql> EXPLAIN SELECT CUSTOMER_NUM, CUSTOMER_NAME FROM CUSTOMER WHERE CUSTOMER_NAME LIKE 'K%';
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
+| id | select_type | table    | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
+|  1 | SIMPLE      | CUSTOMER | ALL  | NULL          | NULL | NULL    | NULL |   10 | Using where |
++----+-------------+----------+------+---------------+------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+mysql> CREATE INDEX NAME_IDX
+    -> ON CUSTOMER (CUSTOMER_NAME);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT CUSTOMER_NUM, CUSTOMER_NAME FROM CUSTOMER WHERE CUSTOMER_NAME LIKE 'K%';
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+| id | select_type | table    | type  | possible_keys | key      | key_len | ref  | rows | Extra       |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+|  1 | SIMPLE      | CUSTOMER | range | NAME_IDX      | NAME_IDX | 35      | NULL |    1 | Using where |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+I add an index on customer name and improved the query by adding a key to use.
+
+mysql> CREATE INDEX NUM_IDX
+    -> ON CUSTOMER (CUSTOMER_NUM);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT CUSTOMER_NUM, CUSTOMER_NAME FROM CUSTOMER WHERE CUSTOMER_NAME LIKE 'K%';
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+| id | select_type | table    | type  | possible_keys | key      | key_len | ref  | rows | Extra       |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+|  1 | SIMPLE      | CUSTOMER | range | NAME_IDX      | NAME_IDX | 35      | NULL |    1 | Using where |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+I tried to add an index on the customer number because it would be referenced often.
+
+mysql> CREATE INDEX CREDIT
+    -> ON CUSTOMER (CREDIT_LIMIT);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT CUSTOMER_NUM, CUSTOMER_NAME FROM CUSTOMER WHERE CUSTOMER_NAME LIKE 'K%';
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+| id | select_type | table    | type  | possible_keys | key      | key_len | ref  | rows | Extra       |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+|  1 | SIMPLE      | CUSTOMER | range | NAME_IDX      | NAME_IDX | 35      | NULL |    1 | Using where |
++----+-------------+----------+-------+---------------+----------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+I tried to index the credit limit because many companies would use this info often.
+
+4.
+
+mysql> EXPLAIN SELECT ORDER_NUM, ORDER_DATE, ORDERS.CUSTOMER_NUM, CUSTOMER.CUSTOMER_NAME FROM ORDERS JOIN CUSTOMER ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 |       |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |       |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE INDEX DATE_IDX ON ORDERS (ORDER_DATE);
+Query OK, 7 rows affected (0.00 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_NUM, ORDER_DATE, ORDERS.CUSTOMER_NUM, CUSTOMER.CUSTOMER_NAME FROM ORDERS JOIN CUSTOMER ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 |       |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |       |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I tried to index the order date because it would be used by companies to look up sales for a particular day.
+
+mysql> CREATE INDEX NAME_IDX ON CUSTOMER (CUSTOMER_NAME);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_NUM, ORDER_DATE, ORDERS.CUSTOMER_NUM, CUSTOMER.CUSTOMER_NAME FROM ORDERS JOIN CUSTOMER ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+| id | select_type | table    | type   | possible_keys | key     | key_len | ref                          | rows | Extra |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL          | NULL    | NULL    | NULL                         |    7 |       |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY       | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |       |
++----+-------------+----------+--------+---------------+---------+---------+------------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I tried to index customer name because it would be used as a search criteria often.
+
+mysql> CREATE INDEX NUM_IDX
+    -> ON CUSTOMER (CUSTOMER_NUM);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDER_NUM, ORDER_DATE, ORDERS.CUSTOMER_NUM, CUSTOMER.CUSTOMER_NAME FROM ORDERS JOIN CUSTOMER ON ORDERS.CUSTOMER_NUM=CUSTOMER.CUSTOMER_NUM;
++----+-------------+----------+--------+-----------------+---------+---------+------------------------------+------+-------+
+| id | select_type | table    | type   | possible_keys   | key     | key_len | ref                          | rows | Extra |
++----+-------------+----------+--------+-----------------+---------+---------+------------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS   | ALL    | NULL            | NULL    | NULL    | NULL                         |    7 |       |
+|  1 | SIMPLE      | CUSTOMER | eq_ref | PRIMARY,NUM_IDX | PRIMARY | 3       | z1579803.ORDERS.CUSTOMER_NUM |    1 |       |
++----+-------------+----------+--------+-----------------+---------+---------+------------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I add an index on customer number and improved the query by one key.
+
+5.
+
+mysql> EXPLAIN SELECT ORDERS.ORDER_NUM, ORDER_DATE, ORDER_LINE.PART_NUM, ORDER_LINE.NUM_ORDERED, ORDER_LINE.QUOTED_PRICE
+    -> FROM ORDERS
+    -> JOIN ORDER_LINE
+    -> ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM
+    -> ;
++----+-------------+------------+------+---------------+---------+---------+---------------------------+------+-------+
+| id | select_type | table      | type | possible_keys | key     | key_len | ref                       | rows | Extra |
++----+-------------+------------+------+---------------+---------+---------+---------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS     | ALL  | PRIMARY       | NULL    | NULL    | NULL                      |    7 |       |
+|  1 | SIMPLE      | ORDER_LINE | ref  | PRIMARY       | PRIMARY | 5       | z1579803.ORDERS.ORDER_NUM |    1 |       |
++----+-------------+------------+------+---------------+---------+---------+---------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE INDEX ORDER_IDX ON ORDERS (ORDER_NUM);
+Query OK, 7 rows affected (0.03 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDERS.ORDER_NUM, ORDER_DATE, ORDER_LINE.PART_NUM, ORDER_LINE.NUM_ORDERED, ORDER_LINE.QUOTED_PRICE FROM ORDERS JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM;
++----+-------------+------------+------+-------------------+---------+---------+---------------------------+------+-------+
+| id | select_type | table      | type | possible_keys     | key     | key_len | ref                       | rows | Extra |
++----+-------------+------------+------+-------------------+---------+---------+---------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS     | ALL  | PRIMARY,ORDER_IDX | NULL    | NULL    | NULL                      |    7 |       |
+|  1 | SIMPLE      | ORDER_LINE | ref  | PRIMARY           | PRIMARY | 5       | z1579803.ORDERS.ORDER_NUM |    1 |       |
++----+-------------+------------+------+-------------------+---------+---------+---------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I add an index to orders.order number and improved the query by one key.
+
+mysql> CREATE INDEX ORDER_LINE_IDX ON ORDER_LINE (ORDER_NUM);                   Query OK, 9 rows affected (0.01 sec)
+Records: 9  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDERS.ORDER_NUM, ORDER_DATE, ORDER_LINE.PART_NUM, ORDER_LINE.NUM_ORDERED, ORDER_LINE.QUOTED_PRICE FROM ORDERS JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM;
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+| id | select_type | table      | type | possible_keys          | key     | key_len | ref                       | rows | Extra |
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS     | ALL  | PRIMARY,ORDER_IDX      | NULL    | NULL    | NULL                      |    7 |       |
+|  1 | SIMPLE      | ORDER_LINE | ref  | PRIMARY,ORDER_LINE_IDX | PRIMARY | 5       | z1579803.ORDERS.ORDER_NUM |    1 |       |
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I add an index on order_line.order number and improved the query by one key.
+
+mysql> CREATE INDEX DATE_IDX ON ORDERS (ORDER_DATE);
+Query OK, 7 rows affected (0.03 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT ORDERS.ORDER_NUM, ORDER_DATE, ORDER_LINE.PART_NUM, ORDER_LINE.NUM_ORDERED, ORDER_LINE.QUOTED_PRICE FROM ORDERS JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM;
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+| id | select_type | table      | type | possible_keys          | key     | key_len | ref                       | rows | Extra |
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+|  1 | SIMPLE      | ORDERS     | ALL  | PRIMARY,ORDER_IDX      | NULL    | NULL    | NULL                      |    7 |       |
+|  1 | SIMPLE      | ORDER_LINE | ref  | PRIMARY,ORDER_LINE_IDX | PRIMARY | 5       | z1579803.ORDERS.ORDER_NUM |    1 |       |
++----+-------------+------------+------+------------------------+---------+---------+---------------------------+------+-------+
+2 rows in set (0.00 sec)
+
+I tried to index order_date because it would be used to reference a day's sales frequently.
+
+6.
+
+mysql> EXPLAIN SELECT PRICE, PART_NUM, DESCRIPTION
+    -> FROM PART
+    -> WHERE PRICE=(SELECT MAX(PRICE) FROM PART);
++----+-------------+-------+------+---------------+-------+---------+-------+------+------------------------------+
+| id | select_type | table | type | possible_keys | key   | key_len | ref   | rows | Extra                        |
++----+-------------+-------+------+---------------+-------+---------+-------+------+------------------------------+
+|  1 | PRIMARY     | PART  | ref  | PRICE         | PRICE | 4       | const |    1 | Using where                  |
+|  2 | SUBQUERY    | NULL  | NULL | NULL          | NULL  | NULL    | NULL  | NULL | Select tables optimized away |
++----+-------------+-------+------+---------------+-------+---------+-------+------+------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE INDEX PRICE_IDX ON PART (PRICE);
+Query OK, 10 rows affected (0.03 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT PRICE, PART_NUM, DESCRIPTION FROM PART WHERE PRICE=(SELECT MAX(PRICE) FROM PART);
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+| id | select_type | table | type | possible_keys   | key   | key_len | ref   | rows | Extra                        |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+|  1 | PRIMARY     | PART  | ref  | PRICE,PRICE_IDX | PRICE | 4       | const |    1 | Using where                  |
+|  2 | SUBQUERY    | NULL  | NULL | NULL            | NULL  | NULL    | NULL  | NULL | Select tables optimized away |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+2 rows in set (0.00 sec)
+
+I add an index on price from the part table and improved the query by one key.
+
+mysql> CREATE INDEX PART_IDX ON PART (PART_NUM);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT PRICE, PART_NUM, DESCRIPTION FROM PART WHERE PRICE=(SELECT MAX(PRICE) FROM PART);
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+| id | select_type | table | type | possible_keys   | key   | key_len | ref   | rows | Extra                        |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+|  1 | PRIMARY     | PART  | ref  | PRICE,PRICE_IDX | PRICE | 4       | const |    1 | Using where                  |
+|  2 | SUBQUERY    | NULL  | NULL | NULL            | NULL  | NULL    | NULL  | NULL | Select tables optimized away |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+2 rows in set (0.00 sec)
+
+I tried to index part number from the part table because it would be used frequently to find a specific part.
+
+mysql> CREATE INDEX DESC_IDX ON PART (DESCRIPTION);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT PRICE, PART_NUM, DESCRIPTION FROM PART WHERE PRICE=(SELECT MAX(PRICE) FROM PART);
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+| id | select_type | table | type | possible_keys   | key   | key_len | ref   | rows | Extra                        |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+|  1 | PRIMARY     | PART  | ref  | PRICE,PRICE_IDX | PRICE | 4       | const |    1 | Using where                  |
+|  2 | SUBQUERY    | NULL  | NULL | NULL            | NULL  | NULL    | NULL  | NULL | Select tables optimized away |
++----+-------------+-------+------+-----------------+-------+---------+-------+------+------------------------------+
+2 rows in set (0.00 sec)
+
+I tried to index part description because it would be used often to search for a part where you dont know the number
+but know what the item is.
+
+7.
+
+mysql> EXPLAIN SELECT DISTINCT REP.REP_NUM, LAST_NAME, FIRST_NAME
+    -> FROM REP
+    -> JOIN CUSTOMER
+    -> ON REP.REP_NUM=CUSTOMER.REP_NUM
+    -> WHERE CUSTOMER.CREDIT_LIMIT=5000;
++----+-------------+----------+------+---------------+------+---------+------+------+------------------------------------------+
+| id | select_type | table    | type | possible_keys | key  | key_len | ref  | rows | Extra                                    |
++----+-------------+----------+------+---------------+------+---------+------+------+------------------------------------------+
+|  1 | SIMPLE      | REP      | ALL  | PRIMARY       | NULL | NULL    | NULL |    3 | Using temporary                          |
+|  1 | SIMPLE      | CUSTOMER | ALL  | NULL          | NULL | NULL    | NULL |   10 | Using where; Distinct; Using join buffer |
++----+-------------+----------+------+---------------+------+---------+------+------+------------------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> CREATE INDEX REP_REP_IDX ON REP (REP_NUM);
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> CREATE INDEX CUST_REP_IDX ON CUSTOMER (REP_NUM);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT DISTINCT REP.REP_NUM, LAST_NAME, FIRST_NAME FROM REP JOIN CUSTOMER ON REP.REP_NUM=CUSTOMER.REP_NUM WHERE CUSTOMER.CREDIT_LIMIT=5000;
++----+-------------+----------+------+---------------------+--------------+---------+----------------------+------+-----------------------+
+| id | select_type | table    | type | possible_keys       | key          | key_len | ref                  | rows | Extra                 |
++----+-------------+----------+------+---------------------+--------------+---------+----------------------+------+-----------------------+
+|  1 | SIMPLE      | REP      | ALL  | PRIMARY,REP_REP_IDX | NULL         | NULL    | NULL                 |    3 | Using temporary       |
+|  1 | SIMPLE      | CUSTOMER | ref  | CUST_REP_IDX        | CUST_REP_IDX | 3       | z1579803.REP.REP_NUM |    2 | Using where; Distinct |
++----+-------------+----------+------+---------------------+--------------+---------+----------------------+------+-----------------------+
+2 rows in set (0.00 sec)
+
+I indexed the rep number for both the customer and rep tables and improved the query by two keys.
+
+mysql> CREATE INDEX CREDIT ON CUSTOMER (CREDIT_LIMIT);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT DISTINCT REP.REP_NUM, LAST_NAME, FIRST_NAME FROM REP JOIN CUSTOMER ON REP.REP_NUM=CUSTOMER.REP_NUM WHERE CUSTOMER.CREDIT_LIMIT=5000;
++----+-------------+----------+--------+---------------------+---------+---------+---------------------------+------+------------------------------+
+| id | select_type | table    | type   | possible_keys       | key     | key_len | ref                       | rows | Extra                        |
++----+-------------+----------+--------+---------------------+---------+---------+---------------------------+------+------------------------------+
+|  1 | SIMPLE      | CUSTOMER | ref    | CUST_REP_IDX,CREDIT | CREDIT  | 5       | const                     |    2 | Using where; Using temporary |
+|  1 | SIMPLE      | REP      | eq_ref | PRIMARY,REP_REP_IDX | PRIMARY | 2       | z1579803.CUSTOMER.REP_NUM |    1 |                              |
++----+-------------+----------+--------+---------------------+---------+---------+---------------------------+------+------------------------------+
+2 rows in set (0.00 sec)
+
+I added an index on to the credit limit in the customer table and improved the query by one key.
+
+8.
+
+mysql> CREATE INDEX DESC_IDX ON PART (DESCRIPTION);
+Query OK, 10 rows affected (0.02 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+
+
+mysql> EXPLAIN SELECT CUSTOMER_NAME, CUSTOMER.CUSTOMER_NUM FROM CUSTOMER JOIN ORDERS ON CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM JOIN PART ON ORDER_LINE.PART_NUM=PART.PART_NUM WHERE DESCRIPTION='GAS RANGE';
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+| id | select_type | table      | type   | possible_keys    | key      | key_len | ref                                              | rows | Extra             |
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+|  1 | SIMPLE      | PART       | ref    | PRIMARY,DESC_IDX | DESC_IDX | 16      | const                                            |    1 | Using where       |
+|  1 | SIMPLE      | ORDERS     | ALL    | PRIMARY          | NULL     | NULL    | NULL                                             |    7 | Using join buffer |
+|  1 | SIMPLE      | ORDER_LINE | eq_ref | PRIMARY          | PRIMARY  | 9       | z1579803.ORDERS.ORDER_NUM,z1579803.PART.PART_NUM |    1 | Using index       |
+|  1 | SIMPLE      | CUSTOMER   | eq_ref | PRIMARY          | PRIMARY  | 3       | z1579803.ORDERS.CUSTOMER_NUM                     |    1 |                   |
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+4 rows in set (0.00 sec)
+
+I created an index on description and improved the query by one key in table part.
+
+mysql> CREATE INDEX CUST_NUM ON CUSTOMER (CUSTOMER_NUM);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT CUSTOMER_NAME, CUSTOMER.CUSTOMER_NUM FROM CUSTOMER JOIN ORDERS ON CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM JOIN PART ON ORDER_LINE.PART_NUM=PART.PART_NUM WHERE DESCRIPTION='GAS RANGE';
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+| id | select_type | table      | type   | possible_keys    | key      | key_len | ref                                              | rows | Extra             |
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+|  1 | SIMPLE      | PART       | ref    | PRIMARY,DESC_IDX | DESC_IDX | 16      | const                                            |    1 | Using where       |
+|  1 | SIMPLE      | ORDERS     | ALL    | PRIMARY          | NULL     | NULL    | NULL                                             |    7 | Using join buffer |
+|  1 | SIMPLE      | ORDER_LINE | eq_ref | PRIMARY          | PRIMARY  | 9       | z1579803.ORDERS.ORDER_NUM,z1579803.PART.PART_NUM |    1 | Using index       |
+|  1 | SIMPLE      | CUSTOMER   | eq_ref | PRIMARY,CUST_NUM | PRIMARY  | 3       | z1579803.ORDERS.CUSTOMER_NUM                     |    1 |                   |
++----+-------------+------------+--------+------------------+----------+---------+--------------------------------------------------+------+-------------------+
+4 rows in set (0.00 sec)
+
+I created an index on customer number from the customer table and improved the query by one key.
+
+mysql> CREATE INDEX ORDER_NUM ON ORDERS (ORDER_NUM);
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT CUSTOMER_NAME, CUSTOMER.CUSTOMER_NUM FROM CUSTOMER JOIN ORDERS ON CUSTOMER.CUSTOMER_NUM=ORDERS.CUSTOMER_NUM JOIN ORDER_LINE ON ORDERS.ORDER_NUM=ORDER_LINE.ORDER_NUM JOIN PART ON ORDER_LINE.PART_NUM=PART.PART_NUM WHERE DESCRIPTION='GAS RANGE';
++----+-------------+------------+--------+-------------------+----------+---------+--------------------------------------------------+------+-------------------+
+| id | select_type | table      | type   | possible_keys     | key      | key_len | ref                                              | rows | Extra             |
++----+-------------+------------+--------+-------------------+----------+---------+--------------------------------------------------+------+-------------------+
+|  1 | SIMPLE      | PART       | ref    | PRIMARY,DESC_IDX  | DESC_IDX | 16      | const                                            |    1 | Using where       |
+|  1 | SIMPLE      | ORDERS     | ALL    | PRIMARY,ORDER_NUM | NULL     | NULL    | NULL                                             |    7 | Using join buffer |
+|  1 | SIMPLE      | ORDER_LINE | eq_ref | PRIMARY           | PRIMARY  | 9       | z1579803.ORDERS.ORDER_NUM,z1579803.PART.PART_NUM |    1 | Using index       |
+|  1 | SIMPLE      | CUSTOMER   | eq_ref | PRIMARY,CUST_NUM  | PRIMARY  | 3       | z1579803.ORDERS.CUSTOMER_NUM                     |    1 |                   |
++----+-------------+------------+--------+-------------------+----------+---------+--------------------------------------------------+------+-------------------+
+4 rows in set (0.00 sec)
+
+I added an index on order number from the orders table and improved the query by one key.

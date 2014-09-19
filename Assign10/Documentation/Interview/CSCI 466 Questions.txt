@@ -1,0 +1,101 @@
+
+
+TAYLOR DOUTHITT Z1579803
+CSCI 466
+ASSIGN10: INTERVIEW QUESTIONS
+6/29/2012
+
+
+CEO:
+
+1. What is the primary goal for this project?
+
+2. Which aspects of your business will we need to store in the database?
+
+3. What specific policies or precedures need to be integrated into this project?
+
+4. What is the overall reason for a change in systems?
+
+5. Who will be using this system, who needs access or tools?
+
+6. What key concepts would you like this project to entail?
+
+7. What message would you like to send with this project?
+
+8. What features would make your job easier?
+
+MANAGEMENT:
+
+1. What permissions are needed for certain data?
+
+2. Who should be able to use certain features?
+
+3. What specific policies will need to be put in place?
+
+4. How would you like the info stored and sorted?
+
+5. How would you like new information presented?
+
+6. How would you like current information re-entered?
+
+7. How would you like miscellaneous data handled?
+
+8. What rates or regulations should be used in the database?
+
+9. What info will be needed to identify an employee/worker in the system?
+
+10. How would you like to deal with cancelations?
+
+11. What features would make your job easier?
+
+CUSTOMER SERVICE:
+
+1. What info do you need stored about the customer?
+
+2. What info do you need stored about the cruise line?
+
+3. What info do you need stored about the ship, staff, and/or crew of the vessels/cruise line?
+
+4. What info do you need about cruise line excursions and extra amenities?
+
+5. How will each customer, manager, or employee be identified?
+
+6. How will each cruise be tracked and what info will be needed?
+
+7. What special promotions are there and how will they be handled?
+
+8. What info does the current system need but lack?
+
+9. What info is extreneous and could be discarded?
+
+10. What features would make your job easier?
+
+11. What info do you need about vessel accomodations and dining/entertainment/etc?
+
+12. What limits need to be in place for certain info?
+
+13. What interface would be most helpful?
+
+
+CUSTOMER:
+
+1. What would you like displayed about the cruise line?
+
+2. What would you like displayed about the vessel, its staff and crew?
+
+3. What info would you like about the onboard entertainment, dining, and other services?
+
+4. What info would you like about accomodations, rooming, and ship maps?
+
+5. What info would you like about pricing and rates?
+
+6. What images or videos would you like included about the cruise line, vessels, or accomodations?
+
+7. What interface is easiest or best for you?
+
+8. What info about excursions would you like to see?
+
+9. What info about the arriving or departing ports do you want to see?
+
+10. What else would make this website better for your usage?
+

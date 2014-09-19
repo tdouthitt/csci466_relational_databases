@@ -1,0 +1,95 @@
+mysql> CREATE TABLE STUDENT
+    -> (STUDENT_NUM CHAR(8) PRIMARY KEY,
+    -> STUDENT_NAME CHAR(16));
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO STUDENT
+    -> VALUES
+    -> ('Z1579803', 'TAYLOR');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO STUDENT VALUES ('Z3089751', 'ROLYAT');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO STUDENT VALUES ('Z6654321', 'ALISSA');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO STUDENT VALUES ('Z4562931', 'ELIOT');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO STUDENT VALUES ('Z9964521', 'DAN');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> SELECT * FROM STUDENT;
++-------------+--------------+
+| STUDENT_NUM | STUDENT_NAME |
++-------------+--------------+
+| Z1579803    | TAYLOR       |
+| Z3089751    | ROLYAT       |
+| Z6654321    | ALISSA       |
+| Z4562931    | ELIOT        |
+| Z9964521    | DAN          |
++-------------+--------------+
+5 rows in set (0.00 sec)
+
+mysql> ALTER TABLE STUDENT
+    -> ADD GPA CHAR(3) NOT NULL;
+Query OK, 5 rows affected (0.02 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> UPDATE STUDENT
+    -> SET GPA='3.0'
+    -> WHERE GPA='';
+Query OK, 5 rows affected (0.00 sec)
+Rows matched: 5  Changed: 5  Warnings: 0
+
+mysql> SELECT * FROM STUDENT;
++-------------+--------------+-----+
+| STUDENT_NUM | STUDENT_NAME | GPA |
++-------------+--------------+-----+
+| Z1579803    | TAYLOR       | 3.0 |
+| Z3089751    | ROLYAT       | 3.0 |
+| Z6654321    | ALISSA       | 3.0 |
+| Z4562931    | ELIOT        | 3.0 |
+| Z9964521    | DAN          | 3.0 |
++-------------+--------------+-----+
+5 rows in set (0.00 sec)
+
+mysql> ALTER TABLE STUDENT
+    -> DROP COLUMN GPA
+    -> ;
+Query OK, 5 rows affected (0.03 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> DELETE FROM STUDENT
+    -> WHERE STUDENT_NUM='Z1579803'
+    -> ;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> SELECT * FROM STUDENT;
++-------------+--------------+
+| STUDENT_NUM | STUDENT_NAME |
++-------------+--------------+
+| Z3089751    | ROLYAT       |
+| Z6654321    | ALISSA       |
+| Z4562931    | ELIOT        |
+| Z9964521    | DAN          |
++-------------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> ALTER TABLE STUDENT DROP COLUMN GPA;
+ERROR 1091 (42000): Can't DROP 'GPA'; check that column/key exists
+
+mysql> SELECT * FROM STUDENT;
++-------------+--------------+
+| STUDENT_NUM | STUDENT_NAME |
++-------------+--------------+
+| Z3089751    | ROLYAT       |
+| Z6654321    | ALISSA       |
+| Z4562931    | ELIOT        |
+| Z9964521    | DAN          |
++-------------+--------------+
+4 rows in set (0.00 sec)
+
+mysql> DROP TABLE STUDENT;
+Query OK, 0 rows affected (0.00 sec)

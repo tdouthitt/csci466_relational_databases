@@ -1,0 +1,137 @@
+COMMIT
+
+SESSION 1
+
+mysql> USE z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> CREATE TABLE TEMP(TNO INT, TNAME CHAR(10)) ENGINE=INNODB;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE INDEX TEMP_IDX ON TEMP(TNO);
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> START TRANSACTION;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> INSERT INTO TEMP VALUES(1, 'T1');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO TEMP VALUES(2, 'T2');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> COMMIT;
+Query OK, 0 rows affected (0.01 sec)
+
+
+SESSION 2
+
+mysql> USE z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> SELECT * FROM TEMP;
+Empty set (0.00 sec)
+
+
+
+mysql> USE z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> SELECT * FROM TEMP;
++------+-------+
+| TNO  | TNAME |
++------+-------+
+|    1 | T1    |
+|    2 | T2    |
++------+-------+
+2 rows in set (0.00 sec)
+
+
+
+ROLLBACK
+
+mysql> USE z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> START TRANSACTION;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> DELETE FROM TEMP WHERE TNO=1;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> SELECT * FROM TEMP;
++------+-------+
+| TNO  | TNAME |
++------+-------+
+|    2 | T2    |
++------+-------+
+1 row in set (0.00 sec)
+
+mysql> ROLLBACK;
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> SELECT * FROM TEMP;
++------+-------+
+| TNO  | TNAME |
++------+-------+
+|    1 | T1    |
+|    2 | T2    |
++------+-------+
+2 rows in set (0.00 sec)
+
+
+
+
+DEADLOCK
+
+SESSION 1
+
+mysql> use z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> start transaction;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> update TEMP
+    -> SET TNAME='T11'
+    -> WHERE TNO=1;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE TEMP
+    -> SET TNAME='T21'
+    -> WHERE TNO=2;
+Query OK, 1 row affected (20.53 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+SESSION 2
+
+mysql> use z1579803
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> start transaction;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> UPDATE TEMP
+    -> SET TNAME='T22'
+    -> WHERE TNO=2;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> UPDATE TEMP
+    -> SET TNAME='T12'
+    -> WHERE TNO=1;
+ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
